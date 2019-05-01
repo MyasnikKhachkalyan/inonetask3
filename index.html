@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html ng-app="serv">
+<head>
+    <title>Task3</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script>    
+        let serv = angular.module('serv', []);
+        serv.service('myServ', ['$http', '$q', function($http, $q) {
+                this.myFunc = function () {
+                    var deferred = $q.defer();
+                    setTimeout(function() {
+                        $http.get('https://content.guardianapis.com/search?format=json&show-fields=headline,thumbnail&order-by=newest&api-key=test').then(function(response) {
+                            console.log(response);
+                            deferred.resolve(response.data.response.results);
+                        }, function(response) {
+
+                            console.log('error');
+                            deferred.reject(response);
+                        });
+                    }, 1000);
+
+                    return deferred.promise;
+                }    
+            }
+        ]);
+        
+        serv.controller('servCTRL', function ($scope, myServ){
+            $scope.data = [];
+            $scope.failedCase = '';
+            
+            $scope.fetch = function(){
+                promise = myServ.myFunc();
+                promise.then(
+                    function(data) {
+                        $scope.data = data;
+                    },
+                    function(reason) {
+                        console.log('Failed: ' + reason);
+                    });
+            }
+        });
+
+    </script>
+</head>
+<body ng-app="serv" ng-controller="servCTRL">
+        <div>
+            <button ng-click="fetch()">Click to fetch</button>
+            <ul>
+                <li ng-repeat="news in data">{{news.fields.thumbnail}}</li>
+            </ul>
+            <!-- <a href="#!/"> <h1 style="text-align:center">NEWS</h1></a>
+            <div>
+            <a ng-href="#!/addnew"><button type="submit">ADD</button></a>
+            <div style="float: right;">
+                <input ng-model="search.title" type="text"/>:Search
+            </div> 
+            </div>
+            <div ng-repeat="n in data |  filter:search" style="margin-top: 60px; display: block; border-bottom: 4px dotted grey">
+            <div style=" float:right;">
+                <a ng-href="#!/edit"><button type="submit" ng-click="editPageInit(n)" >Edit</button></a>
+                <button type="submit" ng-click="removeNews(n)">Delete</button>
+            </div>
+            <div style="display: flex;
+            flex-direction: row; width:80%">
+                <img  src="n.fields.thumbnail" onerror="this.src = 'https://jlfarchitects.com/wp-content/uploads/2015/03/img-placeholder.jpg';" width="250" height="250"/>
+                <div style="margin-left: 50px;">
+                <h2>{{n.fields.headline}}</h2>
+                <p>{{n.sectionName}}, {{n.webPublicationDate}}</p>
+                </div>
+            </div>
+            
+            </div>
+            
+        </div> -->
+        </div>
+</body>
+</html>
